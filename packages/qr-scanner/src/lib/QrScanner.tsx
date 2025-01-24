@@ -152,7 +152,15 @@ export function QrScanner<T = unknown>(props: IQrScannerProps<T>) {
     };
   }, [stopScanning]);
 
-  if (props.children) return <>{props.children(videoRef)}</>;
+  if (props.children && videoRef.current) {
+    return (
+      <>
+        {props.children(
+          videoRef.current as unknown as React.RefObject<HTMLVideoElement>,
+        )}
+      </>
+    );
+  }
 
   return (
     <div

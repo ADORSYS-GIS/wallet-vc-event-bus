@@ -1,4 +1,11 @@
-import { Reducer, useContext, useEffect, useReducer, useState } from 'react';
+import {
+  JSX,
+  Reducer,
+  useContext,
+  useEffect,
+  useReducer,
+  useState,
+} from 'react';
 import InstallPWAContext, { initialState } from './installPWAContext';
 
 import Banner from '../lib/components/Banner';
