@@ -4,7 +4,6 @@ import {
 } from '@adorsys-gis/status-service';
 import { EventEmitter } from 'eventemitter3';
 import {
-  DIDKeyPairVariants,
   DidMethodFactory,
   DIDMethodName,
   PeerGenerationMethod,
@@ -12,69 +11,10 @@ import {
 import { DidRepository } from '../repository/DidRepository';
 import { SecurityService } from '../security/SecurityService';
 import { DidEventChannel } from '../utils/DidEventChannel';
-import {
-  hasPrivateKey,
-  hasPrivateKey1and2,
-  hasPrivateKeyVandE,
-} from '../utils/typeGuards';
+import { encryptPrivateKeys } from '../utils/encryptPrivateKeys';
 
 export class DIDIdentityService {
   private didRepository: DidRepository;
-  private async encryptPrivateKeys(
-    didDocument: DIDKeyPairVariants,
-    pin: number,
-    keys: string[],
-  ): Promise<void> {
-    for (const key of keys) {
-      if (
-        hasPrivateKey(didDocument) &&
-        key === 'privateKey' &&
-        didDocument.privateKey
-      ) {
-        const encryptedKey = await this.securityService.encrypt(
-          pin,
-          didDocument.privateKey,
-        );
-        didDocument.encryptedPrivateKey = encryptedKey;
-      }
-
-      if (
-        hasPrivateKeyVandE(didDocument) &&
-        key === 'privateKeyV' &&
-        didDocument.privateKeyV &&
-        didDocument.privateKeyE
-      ) {
-        const encryptedKeyV = await this.securityService.encrypt(
-          pin,
-          didDocument.privateKeyV,
-        );
-        const encryptedKeyE = await this.securityService.encrypt(
-          pin,
-          didDocument.privateKeyE,
-        );
-        didDocument.encryptedPrivateKeyV = encryptedKeyV;
-        didDocument.encryptedPrivateKeyE = encryptedKeyE;
-      }
-
-      if (
-        hasPrivateKey1and2(didDocument) &&
-        key === 'privateKey1' &&
-        didDocument.privateKey1 &&
-        didDocument.privateKey2
-      ) {
-        const encryptedKey1 = await this.securityService.encrypt(
-          pin,
-          didDocument.privateKey1,
-        );
-        const encryptedKey2 = await this.securityService.encrypt(
-          pin,
-          didDocument.privateKey2,
-        );
-        didDocument.encryptedPrivateKey1 = encryptedKey1;
-        didDocument.encryptedPrivateKey2 = encryptedKey2;
-      }
-    }
-  }
 
   constructor(
     private eventBus: EventEmitter,
@@ -108,13 +48,18 @@ export class DIDIdentityService {
       );
 
       // Call method to encrypt private keys based on the DID document
-      await this.encryptPrivateKeys(didDocument, pin, [
-        'privateKey',
-        'privateKeyV',
-        'privateKeyE',
-        'privateKey1',
-        'privateKey2',
-      ]);
+      await encryptPrivateKeys(
+        didDocument,
+        pin,
+        [
+          'privateKey',
+          'privateKeyV',
+          'privateKeyE',
+          'privateKey1',
+          'privateKey2',
+        ],
+        this.securityService,
+      );
 
       await this.didRepository.createDidId(didDocument);
 

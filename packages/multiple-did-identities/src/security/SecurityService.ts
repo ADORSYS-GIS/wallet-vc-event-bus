@@ -3,16 +3,30 @@ import { PrivateKeyJWK } from '../did-methods/IDidMethod';
 import { base64ToArrayBuffer } from '../utils/base64ToArrayBuffer';
 
 export class SecurityService {
-  private encoder = new TextEncoder();
-  private decoder = new TextDecoder();
+  private encoder?: TextEncoder;
+  private decoder?: TextDecoder;
 
   constructor(
     private iterations: number = 100000,
     private hash: string = 'SHA-256',
   ) {}
 
+  private getEncoder(): TextEncoder {
+    if (!this.encoder) {
+      this.encoder = new TextEncoder();
+    }
+    return this.encoder;
+  }
+
+  private getDecoder(): TextDecoder {
+    if (!this.decoder) {
+      this.decoder = new TextDecoder();
+    }
+    return this.decoder;
+  }
+
   private async deriveKey(pin: number, salt: Uint8Array): Promise<CryptoKey> {
-    const passphraseBuffer = this.encoder.encode(JSON.stringify(pin));
+    const passphraseBuffer = this.getEncoder().encode(JSON.stringify(pin));
 
     const key = await crypto.subtle.importKey(
       'raw',
@@ -43,7 +57,7 @@ export class SecurityService {
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const encryptionKey = await this.deriveKey(pin, salt);
 
-    const encodedData = this.encoder.encode(JSON.stringify(secrets));
+    const encodedData = this.getEncoder().encode(JSON.stringify(secrets));
     const iv = crypto.getRandomValues(new Uint8Array(12));
 
     const ciphertextBuffer = await crypto.subtle.encrypt(
@@ -73,7 +87,7 @@ export class SecurityService {
       ciphertextBuffer,
     );
 
-    const decodedData = this.decoder.decode(decryptedData);
+    const decodedData = this.getDecoder().decode(decryptedData);
     return JSON.parse(decodedData);
   }
 }
