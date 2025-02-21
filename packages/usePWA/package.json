@@ -16,7 +16,8 @@
   "devDependencies": {
     "@babel/core": "^7.26.7",
     "@babel/preset-react": "^7.26.3",
-    "@testing-library/react": "^16.2.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "16.2.0",
     "@types/jest": "^29.5.14",
     "@types/jsdom": "^21.1.7",
     "@types/next-pwa": "^5.6.9",
@@ -34,10 +35,10 @@
     "ts-jest": "*",
     "ts-loader": "^9.5.2",
     "ts-node": "*",
+    "tslib": "*",
     "typescript": "*",
     "webpack": "*",
-    "webpack-cli": "^6.0.1",
-    "tslib": "*"
+    "webpack-cli": "^6.0.1"
   },
   "peerDependencies": {
     "react": "^18.2.0",

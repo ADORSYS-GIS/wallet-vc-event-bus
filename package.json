@@ -24,6 +24,7 @@
     "packages/qr-scanner",
     "packages/usePWA",
     "packages/message-service",
+    "packages/message-pickup",
     "packages/message-exchange"
   ],
   "author": "",

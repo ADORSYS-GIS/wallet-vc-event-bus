@@ -100,6 +100,7 @@ export class DidService {
       const didTo = decodedOob.from;
       const didPeerMethod = new DidPeerMethod();
       const didPeer = await didPeerMethod.generateMethod2();
+      await this.didRepository.createDidId(didPeer);
 
       const resolver = new PeerDIDResolver();
       const secrets = [didPeer.privateKeyE, didPeer.privateKeyV].filter(
@@ -173,6 +174,7 @@ export class DidService {
       }
 
       const mediatorRoutingKey = unpackedContent.body.routing_did;
+
       const mediatorNewDID = unpackedContent.from;
       if (!mediatorRoutingKey || !mediatorNewDID) {
         throw new Error('Mediation Response missing required fields');
@@ -182,10 +184,6 @@ export class DidService {
         await didPeerMethod.generateMethod2RoutingKey(mediatorRoutingKey);
 
       await this.didRepository.createDidId(newDid);
-      this.eventBus.emit(DidEventChannel.MediationResponseReceived, {
-        status: ServiceResponseStatus.Success,
-        payload: unpackedContent,
-      });
 
       const keyupdate: IMessage = {
         id: uuidv4(),
@@ -224,12 +222,22 @@ export class DidService {
 
       // Unpack the keylist update response message
       const keylistResponseJson = await keylistResponse.json();
+
       const [unpackedKeylistResponse] = await Message.unpack(
         JSON.stringify(keylistResponseJson),
         resolver,
         secretsResolver,
         {},
       );
+      console.log(
+        'unpackedKeylistResponse - Get values from here: (from = mediator) ',
+        JSON.stringify(unpackedKeylistResponse.as_value(), null, 2),
+      );
+
+      this.eventBus.emit(DidEventChannel.MediationResponseReceived, {
+        status: ServiceResponseStatus.Success,
+        payload: unpackedKeylistResponse.as_value(),
+      });
       return {
         mediatorRoutingKey,
         keylistResponse: unpackedKeylistResponse,

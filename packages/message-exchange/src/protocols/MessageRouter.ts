@@ -166,7 +166,7 @@ export class MessageRouter {
       const [packedMessage] = await basicMessage.pack_encrypted(
         recipientDid,
         senderDid,
-        null,
+        senderDid,
         didResolver,
         secretsResolver,
         {},

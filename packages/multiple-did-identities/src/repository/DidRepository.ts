@@ -139,6 +139,49 @@ export class DidRepository {
       }));
   }
 
+  // /**
+  //  * Finds a DID identity by its DID string and decrypts the private keys.
+  //  * @param did The DID string to find.
+  //  * @param pin The pin used for decryption after successful authentication
+  //  * @returns The corresponding DIDDocument with decrypted private keys, or null if not found.
+  //  */
+  async getADidPrivateKeysMini(
+    did: string,
+  ): Promise<DidIdentityWithDecryptedKeys | null> {
+    const record = await this.storageFactory.findOne('dids', did);
+    if (!record) {
+      console.error('No record found for DID:', did);
+      return null;
+    }
+
+    const { did: storedDid, createdAt, document } = record.value;
+
+    const decryptedPrivateKeys: Record<string, JWK | PrivateKeyJWK> = {};
+
+    const keyMappings = [
+      { documentKey: 'privateKeyV', resultKey: 'privateKeyV' },
+      { documentKey: 'privateKeyE', resultKey: 'privateKeyE' },
+    ];
+
+    for (const { documentKey, resultKey } of keyMappings) {
+      if (document[documentKey]) {
+        decryptedPrivateKeys[resultKey] = document[documentKey];
+      } else {
+        console.warn(`Document key ${documentKey} not found.`);
+      }
+    }
+
+    console.log('Decrypted private keys:', decryptedPrivateKeys);
+
+    const didIdentityWithDecryptedKeys: DidIdentityWithDecryptedKeys = {
+      did: storedDid,
+      createdAt,
+      decryptedPrivateKeys,
+    };
+
+    return didIdentityWithDecryptedKeys;
+  }
+
   /**
    * Finds a DID identity by its DID string and decrypts the private keys.
    * @param did The DID string to find.
